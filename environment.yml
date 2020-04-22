@@ -1,0 +1,7 @@
+name: gmaps-elevation-chart
+
+dependencies:
+  - python>=3.6
+  - googlemaps
+  - polyline
+  - flake8
