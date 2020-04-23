@@ -12,27 +12,68 @@ Segment = collections.namedtuple(
 )
 
 
-class GmapsClient:
+class Route:
 
-    def __init__(self, key):
-        self.client = googlemaps.Client(key=key)
+    def __init__(self, gmaps_response, mode):
+        self.summary = gmaps_response["summary"]
+        self.origin = gmaps_response["legs"][0]["start_address"]
+        self.destination = gmaps_response["legs"][-1]["end_address"]
+        self.waypoint_order = gmaps_response["waypoint_order"]
+        self.coordinates = self.get_route_coordinates(gmaps_response)
+        self.bounds = {
+            "northeast": Position(
+                gmaps_response["bounds"]["northeast"]["lat"],
+                gmaps_response["bounds"]["northeast"]["lng"]
+            ),
+            "southwest": Position(
+                gmaps_response["bounds"]["southwest"]["lat"],
+                gmaps_response["bounds"]["southwest"]["lng"]
+            )
+        }
+        self.instructions = []
+        self.duration = 0
+        self.distance = 0
+        for leg in gmaps_response["legs"]:
+            self.duration += leg["duration"]["value"]
+            self.distance += leg["distance"]["value"]
+            for step in leg["steps"]:
+                self.instructions.append(step["html_instructions"])
+        self.mode = mode
+        self.elevations = None
+        self.gradients = None
+
+    def __str__(self):
+        head = f"{self.mode.capitalize()} route from {self.origin} to {self.destination}"
+        via = f"via {self.summary}"
+        length = f"{round(self.distance / 1000, 1)} kilometers"
+        time = f"{max(1, round(self.duration / 60))} minutes"
+        return f"{head} {via}\n{length} in {time}"
+
+    def __repr__(self):
+        return f"{self.mode.capitalize()} route from {self.origin} to {self.destination}"
 
     @staticmethod
-    def get_route_coordinates(route):
+    def get_route_coordinates(gmaps_response):
         """Extract the location data and convert to latitude-longitude pairs from
         a route returned by the googlemaps.directions API.
 
         Args:
-            route: a route returned by the googlemaps.directions API
+            gmaps_response: a route returned by the googlemaps.directions API
 
         Returns:
             [Position]: a list of latitude-longitude pairs
         """
         coordinates = []
-        for leg in route["legs"]:
+        for leg in gmaps_response["legs"]:
             for step in leg["steps"]:
                 coordinates += polyline.decode(step["polyline"]["points"])
         return [Position(*coordinate) for coordinate in coordinates]
+
+
+class GmapsClient:
+
+    def __init__(self, key):
+        self.client = googlemaps.Client(key=key)
 
     def get_elevations(self, path_coordinates, samples=512):
         """Get the elevation data for a number of samples along a path of coordinates.
@@ -51,6 +92,21 @@ class GmapsClient:
         return [Elevation(Position(point["location"]["lat"], point["location"]["lng"]),
                           point["elevation"], point["resolution"])
                 for point in elevations]
+
+    def get_directions(self, origin, destination, mode="bicycling", alternatives=True,
+                       waypoints=None, optimize_waypoints=False,
+                       departure_time=None, traffic_model=None):
+        """
+
+        """
+        if mode not in ["driving", "walking", "bicycling"]:
+            raise ValueError("Invalid travel mode (must be driving, walking or bycicling).")
+        results = self.client.directions(
+            origin=origin, destination=destination, mode=mode, alternatives=alternatives,
+            waypoints=waypoints, optimize_waypoints=optimize_waypoints,
+            departure_time=departure_time, traffic_model=traffic_model
+        )
+        return [Route(result, mode) for result in results]
 
 
 def calculate_distance(start_pos, end_pos):
