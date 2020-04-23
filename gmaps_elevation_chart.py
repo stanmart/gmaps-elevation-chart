@@ -1,5 +1,6 @@
 import collections
 from math import radians, sqrt, sin, cos, asin
+from itertools import accumulate
 import googlemaps
 import polyline
 
@@ -96,6 +97,42 @@ class Route:
             raise ValueError("Elevation samples must be obtained first")
         self.segments = calculate_gradients(self.elevations)
 
+    def gradient_plot_data(self):
+        """Return the gradient data in a plottable format (as a dict of two lists).
+
+        Args:
+            None
+
+        Returns:
+            {"distance": [float], "gradient": [float]}
+        """
+        if self.elevations is None:
+            raise ValueError("Elevation samples must be obtained first")
+        if self.segments is None:
+            self.calculate_segment_data()
+        segment_distance = [segment.distance for segment in self.segments]
+        gradient = [segment.gradient for segment in self.segments]
+        distance = list(accumulate(segment_distance))
+        return {"distance": distance, "gradient": gradient}
+
+    def elevation_plot_data(self):
+        """Return the elevation data in a plottable format (as a dict of two lists).
+
+        Args:
+            None
+
+        Returns:
+            {"distance": [float], "height": [float]}
+        """
+        if self.elevations is None:
+            raise ValueError("Elevation samples must be obtained first")
+        if self.segments is None:
+            self.calculate_segment_data()
+        segment_distance = [segment.distance for segment in self.segments]
+        distance = [0] + list(accumulate(segment_distance))
+        height = [elevation.height for elevation in self.elevations]
+        return {"distance": distance, "height": height}
+
 
 class GmapsClient:
 
@@ -187,7 +224,16 @@ def calculate_gradients(elevations):
     return gradients
 
 
-def main():
+def init_client():
+    """Initialize a GmapsClient using credentials stored in an .api-key file.
+    Most useful for testing and debugging purposes"
+
+    Args:
+        None
+
+    Returns:
+        GmapsClient: an initializet google maps client object
+    """
     with open(".api-key") as api_file:
         api_key = api_file.read()
     gmaps = GmapsClient(api_key)
