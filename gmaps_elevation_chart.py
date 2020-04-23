@@ -40,7 +40,7 @@ class Route:
                 self.instructions.append(step["html_instructions"])
         self.mode = mode
         self.elevations = None
-        self.gradients = None
+        self.segments = None
 
     def __str__(self):
         head = f"{self.mode.capitalize()} route from {self.origin} to {self.destination}"
@@ -68,6 +68,33 @@ class Route:
             for step in leg["steps"]:
                 coordinates += polyline.decode(step["polyline"]["points"])
         return [Position(*coordinate) for coordinate in coordinates]
+
+    def get_elevations(self, client, samples=None):
+        """Get the elevation data for a number of samples along a path of this route.
+
+
+        Args:
+            samples: the number of samples along the path for which elevation is returned
+
+        Returns:
+            None
+        """
+        if samples is None:
+            samples = min(self.distance // 30, 512)
+        self.elevations = client.get_elevations(self.coordinates, samples)
+
+    def calculate_segment_data(self):
+        """Calculate the distance and gradient for the segments of this route
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if self.elevations is None:
+            raise ValueError("Elevation samples must be obtained first")
+        self.segments = calculate_gradients(self.elevations)
 
 
 class GmapsClient:
@@ -97,7 +124,13 @@ class GmapsClient:
                        waypoints=None, optimize_waypoints=False,
                        departure_time=None, traffic_model=None):
         """
+        Calculate the route between two points and a possible set of waypoints.
 
+        Args:
+            see googlemaps directions documentation
+
+        Returns:
+            [Route]: a list of calculated routes
         """
         if mode not in ["driving", "walking", "bicycling"]:
             raise ValueError("Invalid travel mode (must be driving, walking or bycicling).")
