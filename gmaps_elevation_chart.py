@@ -170,7 +170,7 @@ class GmapsClient:
             [Route]: a list of calculated routes
         """
         if mode not in ["driving", "walking", "bicycling"]:
-            raise ValueError("Invalid travel mode (must be driving, walking or bycicling).")
+            raise ValueError("Invalid travel mode (must be driving, walking or bicycling).")
         results = self.client.directions(
             origin=origin, destination=destination, mode=mode, alternatives=alternatives,
             waypoints=waypoints, optimize_waypoints=optimize_waypoints,
