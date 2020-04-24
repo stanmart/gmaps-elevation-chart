@@ -6,16 +6,42 @@ from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 
 
 def lat_to_y(lat):
+    """Convert latitude to Web-Mercator
+
+    Args:
+        lat: a latutude value
+
+    Returns:
+        float: a Web-Mercator y coordinate
+    """
     r = 6_378_137  # radius of the Earth at the equator
     return log(tan((90 + lat) * pi / 360)) * r
 
 
 def lng_to_x(lng):
+    """Convert longitude to Web-Mercator
+
+    Args:
+        lng: a longitude value
+
+    Returns:
+        float: a Web-Mercator x coordinate
+    """
     r = 6_378_137  # radius of the Earth at the equator
     return lng * r * pi / 180
 
 
 def plot_elevation_graphs(col, glyphs, routes):
+    """Adds an elevation plot to a bokeh container object.
+
+    Args:
+        col: a bokeh container object (e.g. row, column)
+        glyphs: a list that will hold the created glyphs
+        routes: a list of Routes
+
+    Returns:
+        None
+    """
     glyphs.clear()
     fig = figure(width=400, height=240)
     fig.toolbar.logo = None
@@ -34,6 +60,16 @@ def plot_elevation_graphs(col, glyphs, routes):
 
 
 def plot_gradient_graphs(col, glyphs, routes, max_gradient):
+    """Adds a gradient plot to a bokeh container object.
+
+    Args:
+        col: a bokeh container object (e.g. row, column)
+        glyphs: a list that will hold the created glyphs
+        routes: a list of Routes
+
+    Returns:
+        None
+    """
     glyphs.clear()
     fig = figure(width=400, height=240)
     fig.toolbar.logo = None
@@ -53,6 +89,16 @@ def plot_gradient_graphs(col, glyphs, routes, max_gradient):
 
 
 def plot_gradient_histogram(col, glyphs, routes, max_gradient):
+    """Adds agradient histogram to a bokeh container object.
+
+    Args:
+        col: a bokeh container object (e.g. row, column)
+        glyphs: a list that will hold the created glyphs
+        routes: a list of Routes
+
+    Returns:
+        None
+    """
     glyphs.clear()
     step = 2
     bins = np.arange(-max_gradient, max_gradient + 0.1, step)  # include endpoint
@@ -81,6 +127,16 @@ def plot_gradient_histogram(col, glyphs, routes, max_gradient):
 
 
 def plot_map(col, glyphs, routes):
+    """Adds a map plot to a bokeh container object.
+
+    Args:
+        col: a bokeh container object (e.g. row, column)
+        glyphs: a list that will hold the created glyphs
+        routes: a list of Routes
+
+    Returns:
+        None
+    """
     glyphs.clear()
     fig = figure(width=600, height=400, match_aspect=True,
                  x_axis_type="mercator", y_axis_type="mercator")

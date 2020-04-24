@@ -2,7 +2,7 @@ from bokeh.layouts import column, row
 from bokeh.models import Button, TextInput, Div, RadioButtonGroup, PreText, RadioGroup
 from bokeh.models.callbacks import CustomJS
 from bokeh.plotting import curdoc
-from gmaps_elevation_chart import init_client
+from gmaps_client import init_client
 from googlemaps.exceptions import ApiError, HTTPError, Timeout, TransportError
 from bokeh_plots import plot_elevation_graphs, plot_gradient_graphs, plot_map, plot_gradient_histogram  # noqa: E501
 
@@ -14,6 +14,14 @@ search_results = []
 
 
 def radio_text(route):
+    """Returns a short representation of a Route
+
+    Args:
+        route: a Route object
+
+    Returns:
+        str: a string containing the route summary and duration
+    """
     text = " ".join([
         "via " + route.summary,
         f"({max(1, round(route.duration / 60))} minutes)"
@@ -22,6 +30,9 @@ def radio_text(route):
 
 
 def find_routes():
+    """Callback for the go button. Obtains the planned routes and fills the document with plots.
+    Modifies nonlocal mutable variables!
+    """
     modes = ["bicycling", "driving", "walking"]
     try:
         results = gmaps.get_directions(
@@ -60,6 +71,9 @@ def find_routes():
 
 
 def display_results(attr, new, old):
+    """Callback for the route picker radio buttons. Highlights the route on the plots.
+    Modifies nonlocal mutable variables!
+    """
     if result_picker.active is None:
         instructions.text = ""
     else:

@@ -14,6 +14,12 @@ Segment = collections.namedtuple(
 
 
 class Route:
+    """A class representing a planned route.
+
+    Args:
+        gmaps_response: The result of a directions request from the googlemaps API
+        mode: transport mode (one of bicycling, driving or walking)
+    """
 
     def __init__(self, gmaps_response, mode):
         self.summary = gmaps_response["summary"]
@@ -150,6 +156,11 @@ class Route:
 
 
 class GmapsClient:
+    """A class that represents an initialized googlemaps client.
+
+    Args:
+        key: a Google Maps API key
+    """
 
     def __init__(self, key):
         self.client = googlemaps.Client(key=key)
@@ -240,14 +251,13 @@ def calculate_gradients(elevations):
 
 
 def init_client():
-    """Initialize a GmapsClient using credentials stored in an .api-key file.
-    Most useful for testing and debugging purposes"
+    """Initialize a GmapsClient using credentials stored in an .api-key file
 
     Args:
         None
 
     Returns:
-        GmapsClient: an initializet google maps client object
+        GmapsClient: an initialized google maps client object
     """
     with open(".api-key") as api_file:
         api_key = api_file.read()
