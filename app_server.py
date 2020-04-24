@@ -13,6 +13,14 @@ gmaps = init_client()
 search_results = []
 
 
+def radio_text(route):
+    text = " ".join([
+        "via " + route.summary,
+        f"({max(1, round(route.duration / 60))} minutes)"
+    ])
+    return text
+
+
 def find_routes():
     modes = ["bicycling", "driving", "walking"]
     try:
@@ -30,7 +38,7 @@ def find_routes():
         return
     search_results.clear()
     search_results.extend(results)
-    result_picker.labels = ["via " + route.summary for route in search_results]
+    result_picker.labels = [radio_text(route) for route in search_results]
     result_picker.active = None
     try:
         for result in search_results:

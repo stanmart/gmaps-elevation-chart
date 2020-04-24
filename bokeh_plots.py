@@ -22,7 +22,7 @@ def plot_elevation_graphs(col, glyphs, routes):
     fig.toolbar_location = None
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
-    fig.xaxis.axis_label = "Distance"
+    fig.xaxis.axis_label = "Distance (meters)"
     fig.yaxis.axis_label = "Gradient (%)"
     for route in reversed(routes):
         data = route.elevation_plot_data()
@@ -40,7 +40,7 @@ def plot_gradient_graphs(col, glyphs, routes, max_gradient):
     fig.toolbar_location = None
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
-    fig.xaxis.axis_label = "Distance"
+    fig.xaxis.axis_label = "Distance (meters)"
     fig.yaxis.axis_label = "Gradient (%)"
     fig.y_range = Range1d(-max_gradient, max_gradient)
     for route in reversed(routes):
@@ -53,6 +53,7 @@ def plot_gradient_graphs(col, glyphs, routes, max_gradient):
 
 
 def plot_gradient_histogram(col, glyphs, routes, max_gradient):
+    glyphs.clear()
     step = 2
     bins = np.arange(-max_gradient, max_gradient + 0.1, step)  # include endpoint
     extended_bins = np.r_[-np.inf, bins, np.inf]
