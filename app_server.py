@@ -7,6 +7,8 @@ from googlemaps.exceptions import ApiError, HTTPError, Timeout, TransportError
 from bokeh_plots import plot_elevation_graphs, plot_gradient_graphs, plot_map, plot_gradient_histogram  # noqa: E501
 
 
+MAX_GRADIENT = 24
+
 gmaps = init_client()
 search_results = []
 
@@ -42,7 +44,7 @@ def find_routes():
         return
     graph_pane.children.clear()
     plot_elevation_graphs(graph_pane, elevation_graph_glyphs, search_results)
-    plot_gradient_graphs(graph_pane, gradient_graph_glyphs, search_results)
+    plot_gradient_graphs(graph_pane, gradient_graph_glyphs, search_results, MAX_GRADIENT)
     if len(map_pane.children) == 2:
         del map_pane.children[0]
     plot_map(map_pane, map_plot_glyphs, search_results)
@@ -56,22 +58,25 @@ def display_results(attr, new, old):
     else:
         active_result = search_results[result_picker.active]
         instructions.text = "<br>".join(active_result.instructions)
-        graph_pane.children.append(plot_gradient_histogram(search_results[result_picker.active]))
-    for i in range(len(search_results)):
-        if i == result_picker.active:
-            elevation_graph_glyphs[i].glyph.line_color = "#5cb85c"
-            gradient_graph_glyphs[i].glyph.line_color = "#5cb85c"
-            map_plot_glyphs[i].glyph.line_color = "#5cb85c"
-            elevation_graph_glyphs[i].glyph.line_alpha = 1
-            gradient_graph_glyphs[i].glyph.line_alpha = 1
-            map_plot_glyphs[i].glyph.line_alpha = 1
-        else:
-            elevation_graph_glyphs[i].glyph.line_color = "#8f8f8f"
-            gradient_graph_glyphs[i].glyph.line_color = "#8f8f8f"
-            map_plot_glyphs[i].glyph.line_color = "#8f8f8f"
-            elevation_graph_glyphs[i].glyph.line_alpha = 0.2
-            gradient_graph_glyphs[i].glyph.line_alpha = 0.2
-            map_plot_glyphs[i].glyph.line_alpha = 0.3
+        graph_pane.children.append(plot_gradient_histogram(
+            search_results[result_picker.active], MAX_GRADIENT, debug_div
+        ))
+    if len(search_results) == len(elevation_graph_glyphs) == len(map_plot_glyphs):
+        for i in range(len(search_results)):
+            if i == result_picker.active:
+                elevation_graph_glyphs[i].glyph.line_color = "#5cb85c"
+                gradient_graph_glyphs[i].glyph.line_color = "#5cb85c"
+                map_plot_glyphs[i].glyph.line_color = "#5cb85c"
+                elevation_graph_glyphs[i].glyph.line_alpha = 1
+                gradient_graph_glyphs[i].glyph.line_alpha = 1
+                map_plot_glyphs[i].glyph.line_alpha = 1
+            else:
+                elevation_graph_glyphs[i].glyph.line_color = "#8f8f8f"
+                gradient_graph_glyphs[i].glyph.line_color = "#8f8f8f"
+                map_plot_glyphs[i].glyph.line_color = "#8f8f8f"
+                elevation_graph_glyphs[i].glyph.line_alpha = 0.2
+                gradient_graph_glyphs[i].glyph.line_alpha = 0.2
+                map_plot_glyphs[i].glyph.line_alpha = 0.3
 
 
 ###############################
@@ -125,6 +130,8 @@ gradient_histogram_glyphs = []
 
 graph_pane = column()
 
-layout = row(route_selection_pane, map_pane, graph_pane)
+debug_div = Div(width=400)
+
+layout = row(route_selection_pane, map_pane, graph_pane, debug_div)
 
 curdoc().add_root(layout)

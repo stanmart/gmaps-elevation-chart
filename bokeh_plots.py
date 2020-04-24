@@ -1,6 +1,7 @@
 from math import log, tan, pi
 import numpy as np
 from bokeh.plotting import figure
+from bokeh.models import Range1d
 from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 
 
@@ -32,7 +33,7 @@ def plot_elevation_graphs(col, glyphs, routes):
     col.children.append(fig)
 
 
-def plot_gradient_graphs(col, glyphs, routes):
+def plot_gradient_graphs(col, glyphs, routes, max_gradient):
     glyphs.clear()
     fig = figure(width=400, height=240)
     fig.toolbar.logo = None
@@ -41,6 +42,7 @@ def plot_gradient_graphs(col, glyphs, routes):
     fig.ygrid.grid_line_color = None
     fig.xaxis.axis_label = "Distance"
     fig.yaxis.axis_label = "Gradient (%)"
+    fig.y_range = Range1d(-max_gradient, max_gradient)
     for route in reversed(routes):
         data = route.gradient_plot_data()
         glyph = fig.line(data["distance"], data["gradient"],
@@ -50,17 +52,25 @@ def plot_gradient_graphs(col, glyphs, routes):
     col.children.append(fig)
 
 
-def plot_gradient_histogram(route):
+def plot_gradient_histogram(route, max_gradient, debug):
     data = route.gradient_plot_data()
-    hist, edges = np.histogram(data["gradient"], density=True, bins=50)
+
+    step = 2
+    bins = np.arange(-max_gradient, max_gradient + 0.1, step)  # include endpoint
+    extended_bins = np.r_[-np.inf, bins, np.inf]
+    plot_bins = np.r_[-max_gradient - step, bins, max_gradient + step]
+    hist, _ = np.histogram(data["gradient"], density=False, bins=extended_bins)
+    normed_hist = hist / step
+
     fig = figure(width=400, height=240)
     fig.toolbar.logo = None
     fig.toolbar_location = None
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
-    fig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:],
+    fig.quad(top=normed_hist, bottom=0, left=plot_bins[:-1], right=plot_bins[1:],
              fill_color="#5cb85c", line_color="white")
     fig.y_range.start = 0
+    fig.x_range = Range1d(min(plot_bins), max(plot_bins))
     fig.xaxis.axis_label = "Gradient (%)"
     fig.yaxis.axis_label = "Density"
     return fig
