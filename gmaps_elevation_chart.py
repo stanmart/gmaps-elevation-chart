@@ -133,6 +133,21 @@ class Route:
         height = [elevation.height for elevation in self.elevations]
         return {"distance": distance, "height": height}
 
+    def map_plot_data(self):
+        """Return the geo data in a plottable format (as a dict of two lists).
+
+        Args:
+            None
+
+        Returns:
+            {"lat": [float], "lng": [float]}
+        """
+
+        lats = [coordinate.lat for coordinate in self.coordinates]
+        lngs = [coordinate.lng for coordinate in self.coordinates]
+
+        return {"lat": lats, "lng": lngs}
+
 
 class GmapsClient:
 
