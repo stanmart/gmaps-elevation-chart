@@ -52,28 +52,31 @@ def plot_gradient_graphs(col, glyphs, routes, max_gradient):
     col.children.append(fig)
 
 
-def plot_gradient_histogram(route, max_gradient, debug):
-    data = route.gradient_plot_data()
-
+def plot_gradient_histogram(col, glyphs, routes, max_gradient):
     step = 2
     bins = np.arange(-max_gradient, max_gradient + 0.1, step)  # include endpoint
     extended_bins = np.r_[-np.inf, bins, np.inf]
     plot_bins = np.r_[-max_gradient - step, bins, max_gradient + step]
-    hist, _ = np.histogram(data["gradient"], density=False, bins=extended_bins)
-    normed_hist = hist / step
 
     fig = figure(width=400, height=240)
     fig.toolbar.logo = None
     fig.toolbar_location = None
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
-    fig.quad(top=normed_hist, bottom=0, left=plot_bins[:-1], right=plot_bins[1:],
-             fill_color="#5cb85c", line_color="white")
     fig.y_range.start = 0
     fig.x_range = Range1d(min(plot_bins), max(plot_bins))
     fig.xaxis.axis_label = "Gradient (%)"
     fig.yaxis.axis_label = "Density"
-    return fig
+
+    for route in routes:
+        data = route.gradient_plot_data()
+        hist, _ = np.histogram(data["gradient"], density=False, bins=extended_bins)
+        normed_hist = hist / step
+        glyph = fig.quad(top=normed_hist, bottom=0, left=plot_bins[:-1], right=plot_bins[1:],
+                         fill_color="#5cb85c", line_color="white")
+        glyph.visible = False
+        glyphs.append(glyph)
+    col.children.append(fig)
 
 
 def plot_map(col, glyphs, routes):

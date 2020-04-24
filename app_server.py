@@ -45,23 +45,20 @@ def find_routes():
     graph_pane.children.clear()
     plot_elevation_graphs(graph_pane, elevation_graph_glyphs, search_results)
     plot_gradient_graphs(graph_pane, gradient_graph_glyphs, search_results, MAX_GRADIENT)
+    plot_gradient_histogram(graph_pane, gradient_histogram_glyphs, search_results, MAX_GRADIENT)
     if len(map_pane.children) == 2:
         del map_pane.children[0]
     plot_map(map_pane, map_plot_glyphs, search_results)
 
 
 def display_results(attr, new, old):
-    if len(graph_pane.children) == 3:
-        del graph_pane.children[-1]
     if result_picker.active is None:
         instructions.text = ""
     else:
         active_result = search_results[result_picker.active]
         instructions.text = "<br>".join(active_result.instructions)
-        graph_pane.children.append(plot_gradient_histogram(
-            search_results[result_picker.active], MAX_GRADIENT, debug_div
-        ))
-    if len(search_results) == len(elevation_graph_glyphs) == len(map_plot_glyphs):
+    if (len(search_results) == len(elevation_graph_glyphs)
+            == len(map_plot_glyphs) == len(gradient_histogram_glyphs)):
         for i in range(len(search_results)):
             if i == result_picker.active:
                 elevation_graph_glyphs[i].glyph.line_color = "#5cb85c"
@@ -70,6 +67,7 @@ def display_results(attr, new, old):
                 elevation_graph_glyphs[i].glyph.line_alpha = 1
                 gradient_graph_glyphs[i].glyph.line_alpha = 1
                 map_plot_glyphs[i].glyph.line_alpha = 1
+                gradient_histogram_glyphs[i].visible = True
             else:
                 elevation_graph_glyphs[i].glyph.line_color = "#8f8f8f"
                 gradient_graph_glyphs[i].glyph.line_color = "#8f8f8f"
@@ -77,6 +75,7 @@ def display_results(attr, new, old):
                 elevation_graph_glyphs[i].glyph.line_alpha = 0.2
                 gradient_graph_glyphs[i].glyph.line_alpha = 0.2
                 map_plot_glyphs[i].glyph.line_alpha = 0.3
+                gradient_histogram_glyphs[i].visible = False
 
 
 ###############################
@@ -130,8 +129,6 @@ gradient_histogram_glyphs = []
 
 graph_pane = column()
 
-debug_div = Div(width=400)
-
-layout = row(route_selection_pane, map_pane, graph_pane, debug_div)
+layout = row(route_selection_pane, map_pane, graph_pane)
 
 curdoc().add_root(layout)
